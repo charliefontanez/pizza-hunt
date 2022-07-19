@@ -1,6 +1,16 @@
-const { Comment, Pizza  } = require('../models/index');
+const { Pizza, Comment } = require('../models/index');
 
 const commentController = {
+
+  getAllComments(req, res) {
+    Comment.find({})
+      .then(dbCommentData => res.json(dbCommentData))
+      .catch(err => {
+        console.log(err);
+        res.status(400).json(err);
+      });
+  },
+
   addComment({ params, body }, res) {
     console.log(body);
     Comment.create(body)
@@ -22,14 +32,15 @@ const commentController = {
   },
 
   removeComment({params}, res) {
+    console.log(params.commentId);
     Comment.findOneAndDelete({ _id: params.commentId })
       .then(deletedComment => {
         if (!deletedComment) {
-          return res.status(404).json({ message: 'No comment twith this id!' });
+          return res.status(404).json({ message: 'No comment with this id!' });
         }
         return Pizza.findOneAndUpdate(
           { _id: params.pizzaId },
-          { $pill: { comments: params.commentId } },
+          { $pull: { comments: params.commentId } },
           { new: true }
         );
       })
